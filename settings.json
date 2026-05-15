@@ -1,0 +1,44 @@
+{
+  "lastChangelogVersion": "0.74.0",
+  "defaultProvider": "openai-codex",
+  "defaultModel": "gpt-5.5",
+  "defaultThinkingLevel": "off",
+  "packages": [
+    "npm:@plannotator/pi-extension",
+    "npm:pi-powerline-footer",
+    "npm:@victor-software-house/pi-curated-themes",
+    "npm:pi-mcp-adapter"
+  ],
+  "editorPaddingX": 0,
+  "followUpMode": "all",
+  "theme": "gruvbox-dark",
+  "steeringMode": "all",
+  "enableSkillCommands": true,
+  "quietStartup": true,
+  "enabledModels": [
+    "opencode-go/kimi-k2.5",
+    "opencode-go/minimax-m2.7",
+    "opencode/kimi-k2.5",
+    "opencode-go/deepseek-v4-pro",
+    "opencode-go/glm-5.1",
+    "opencode-go/kimi-k2.6",
+    "opencode/glm-5.1",
+    "opencode/kimi-k2.6",
+    "openai-codex/gpt-5.5",
+    "openai-codex/gpt-5.4",
+    "opencode/gpt-5.5",
+    "crofai/deepseek-v4-pro",
+    "crofai/glm-5.1-precision",
+    "crofai/kimi-k2.6-precision",
+    "crofai/deepseek-v4-pro-precision",
+    "github-copilot/gpt-5.5",
+    "github-copilot/gpt-5.3-codex",
+    "openai-codex/gpt-5.3-codex"
+  ],
+  "hideThinkingBlock": true,
+  "showHardwareCursor": false,
+  "terminal": {
+    "showTerminalProgress": false
+  },
+  "doubleEscapeAction": "tree"
+}

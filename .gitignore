@@ -1,0 +1,8 @@
+node_modules
+.DS_Store
+sessions
+skills
+
+auth.json
+executor-sidecars.json
+mcp-cache.json
