@@ -1,63 +1,27 @@
 {
   "providers": {
-    "synthetic": {
-      "baseUrl": "https://api.synthetic.new/openai/v1",
+    "openai-multi": {
+      "baseUrl": "https://llm.chanyeinthaw.com/v1",
       "api": "openai-completions",
-      "apiKey": "SYNTHETIC_API_KEY",
+      "apiKey": "<define>",
       "models": [
         {
-          "id": "hf:moonshotai/Kimi-K2.5",
-          "name": "Kimi-K2.5",
-          "contextWindow": 262144,
-          "maxTokens": 65536,
-          "input": ["text", "image"]
-        },
-        {
-          "id": "hf:nvidia/Kimi-K2.5-NVFP4",
-          "name": "Kimi-K2.5 (NVFP4)",
-          "contextWindow": 262144,
-          "maxTokens": 65536,
-          "input": ["text", "image"]
-        },
-        {
-          "id": "hf:zai-org/GLM-5",
-          "name": "GLM-5",
-          "contextWindow": 196608
-        }
-      ]
-    },
-    "crofai": {
-      "baseUrl": "https://crof.ai/v1",
-      "api": "openai-completions",
-      "apiKey": "nahcrof_DoVPtabZnRIVDkkihszP",
-      "models": [
-        {
-          "id": "kimi-k2.6-precision",
-          "name": "Kimi-K2.5",
-          "contextWindow": 262144,
-          "maxTokens": 262144,
-          "input": ["text", "image"]
-        },
-        {
-          "id": "glm-5.1-precision",
-          "name": "GLM-5.1",
-          "contextWindow": 202752,
-          "maxTokens": 202752,
-          "input": ["text"]
-        },
-        {
-          "id": "deepseek-v4-pro-precision",
-          "name": "Deepseek v4 Pro",
-          "contextWindow": 1000000,
-          "maxTokens": 131072,
-          "input": ["text"]
-        },
-        {
-          "id": "deepseek-v4-pro",
-          "name": "Deepseek v4 Pro (Q4)",
-          "contextWindow": 1000000,
-          "maxTokens": 131072,
-          "input": ["text"]
+          "id": "gpt-5.5",
+          "name": "GPT-5.5 (Proxy)",
+          "reasoning": true,
+          "maxTokens": 128000,
+          "input": [
+            "text",
+            "image"
+          ],
+          "contextWindow": 256000,
+          "thinkingLevelMap": {
+            "minimal": "none",
+            "low": "low",
+            "medium": "medium",
+            "high": "high",
+            "xhigh": "xhigh"
+          }
         }
       ]
     }

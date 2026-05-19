@@ -6,3 +6,4 @@ skills
 auth.json
 executor-sidecars.json
 mcp-cache.json
+models.json-local
