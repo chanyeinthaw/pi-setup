@@ -1,0 +1,44 @@
+{
+  "lastChangelogVersion": "0.83.0",
+  "defaultProvider": "openai-multi",
+  "defaultModel": "gpt-5.6-sol",
+  "defaultThinkingLevel": "low",
+  "packages": [
+    "npm:pi-mcp-adapter",
+    "npm:pi-powerline-footer",
+    "npm:@victor-software-house/pi-curated-themes"
+  ],
+  "editorPaddingX": 0,
+  "followUpMode": "all",
+  "theme": "gruvbox-dark",
+  "steeringMode": "all",
+  "enableSkillCommands": true,
+  "quietStartup": true,
+  "enabledModels": [
+    "opencode-go/deepseek-v4-pro",
+    "opencode-go/glm-5.1",
+    "opencode-go/kimi-k2.6",
+    "opencode-go/deepseek-v4-flash",
+    "opencode-go/glm-5.2",
+    "openai-multi/gpt-5.6-sol",
+    "openai-multi/gpt-5.6-terra"
+  ],
+  "hideThinkingBlock": false,
+  "showHardwareCursor": false,
+  "terminal": {
+    "showTerminalProgress": false
+  },
+  "doubleEscapeAction": "tree",
+  "describe_image": {
+    "model": "opencode-go/kimi-k2.6"
+  },
+  "auto-mode": {
+    "enabled": false,
+    "model": "openai-multi/gpt-5.6-luna",
+    "thinkingLevel": "high",
+    "authorizationCode": "AK6JB"
+  },
+  "compaction": {
+    "enabled": true
+  }
+}

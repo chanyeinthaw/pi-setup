@@ -1,0 +1,38 @@
+{
+  "name": "PI Setup",
+  "version": "1.0.0",
+  "description": "",
+  "keywords": [],
+  "license": "MIT",
+  "author": "Chan Nyein Thaw (chanyeinthaw@gmail.com)",
+  "type": "module",
+  "imports": {
+    "#src/*": "./src/*"
+  },
+  "scripts": {
+    "check": "pnpm run format:check && pnpm run lint && pnpm run typecheck",
+    "format": "oxfmt .",
+    "format:check": "oxfmt --check .",
+    "lint": "oxlint --type-aware --type-check --deny-warnings .",
+    "typecheck": "tsc --noEmit",
+    "effect:diagnostics": "effect-tsgo diagnostics --project tsconfig.json",
+    "prepare": "effect-tsgo patch --typescript --oxlint"
+  },
+  "dependencies": {
+    "@earendil-works/pi-ai": "^0.74.0",
+    "@earendil-works/pi-coding-agent": "^0.74.0",
+    "@earendil-works/pi-tui": "^0.74.0",
+    "@effect/platform-node": "4.0.0-beta.103",
+    "effect": "4.0.0-beta.103",
+    "typebox": "1.1.38"
+  },
+  "devDependencies": {
+    "@effect/tsgo": "^0.31.0",
+    "@types/node": "^25.6.0",
+    "oxfmt": "^0.62.0",
+    "oxlint": "^1.77.0",
+    "oxlint-tsgolint": "7.0.2001",
+    "typescript": "^7.0.2"
+  },
+  "packageManager": "pnpm@10.33.0"
+}

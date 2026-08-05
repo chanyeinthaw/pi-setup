@@ -1,0 +1,16 @@
+node_modules
+.DS_Store
+sessions
+skills
+
+auth.json
+executor-sidecars.json
+mcp-cache.json
+mcp-npx-cache.json
+models-store.json
+models.json-local
+bin/
+
+.repos/
+
+dist/
