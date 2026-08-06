@@ -16,23 +16,39 @@
     "lint": "oxlint --type-aware --type-check --deny-warnings .",
     "typecheck": "tsc --noEmit",
     "effect:diagnostics": "effect-tsgo diagnostics --project tsconfig.json",
+    "test": "vitest run packages/agents/test",
+    "agents": "bun packages/agents/src/main.tsx",
+    "agents:daemon": "bun packages/agents/src/daemon/main.ts",
+    "agents:build": "bun packages/agents/scripts/build.ts",
+    "agents:install": "pnpm agents:build && packages/agents/install.sh",
+    "agents:uninstall": "packages/agents/uninstall.sh",
     "prepare": "effect-tsgo patch --typescript --oxlint"
   },
   "dependencies": {
     "@earendil-works/pi-ai": "^0.74.0",
     "@earendil-works/pi-coding-agent": "^0.74.0",
     "@earendil-works/pi-tui": "^0.74.0",
+    "@effect/platform-bun": "4.0.0-beta.103",
     "@effect/platform-node": "4.0.0-beta.103",
+    "@effect/sql-sqlite-bun": "4.0.0-beta.103",
+    "@effect/sql-sqlite-node": "4.0.0-beta.103",
+    "@opentui/core": "^0.5.1",
+    "@opentui/react": "^0.5.1",
     "effect": "4.0.0-beta.103",
+    "react": "^19.2.8",
     "typebox": "1.1.38"
   },
   "devDependencies": {
     "@effect/tsgo": "^0.31.0",
+    "@effect/vitest": "4.0.0-beta.103",
+    "@types/bun": "^1.3.14",
     "@types/node": "^25.6.0",
+    "@types/react": "^19.2.18",
     "oxfmt": "^0.62.0",
     "oxlint": "^1.77.0",
     "oxlint-tsgolint": "7.0.2001",
-    "typescript": "^7.0.2"
+    "typescript": "^7.0.2",
+    "vitest": "4.1.10"
   },
   "packageManager": "pnpm@10.33.0"
 }

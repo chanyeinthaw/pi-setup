@@ -2,7 +2,7 @@
   "lastChangelogVersion": "0.83.0",
   "defaultProvider": "openai-multi",
   "defaultModel": "gpt-5.6-sol",
-  "defaultThinkingLevel": "low",
+  "defaultThinkingLevel": "high",
   "packages": [
     "npm:pi-mcp-adapter",
     "npm:pi-powerline-footer",
@@ -21,7 +21,8 @@
     "opencode-go/deepseek-v4-flash",
     "opencode-go/glm-5.2",
     "openai-multi/gpt-5.6-sol",
-    "openai-multi/gpt-5.6-terra"
+    "openai-multi/gpt-5.6-terra",
+    "openai-multi/gpt-5.6-luna"
   ],
   "hideThinkingBlock": false,
   "showHardwareCursor": false,
