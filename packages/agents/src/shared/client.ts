@@ -1,6 +1,7 @@
-import * as BunSocket from "@effect/platform-node/NodeSocket";
+import * as NodeSocket from "@effect/platform-node/NodeSocket";
 import * as Deferred from "effect/Deferred";
 import * as Effect from "effect/Effect";
+import * as SocketModules from "effect/unstable/socket";
 import * as Queue from "effect/Queue";
 import * as Stream from "effect/Stream";
 import { ProtocolError } from "./domain.ts";
@@ -10,6 +11,11 @@ import {
   type AgentSnapshot,
 } from "./notifications.ts";
 import { decodeResponse, encodeJson, parseJson } from "./protocol.ts";
+
+// Keep the public socket barrel in Bun's compiled module graph. Importing only
+// NodeSocket can otherwise leave Effect's Socket service partially initialized.
+const socketService = SocketModules.Socket.Socket;
+void socketService;
 
 export interface AgentClient {
   readonly call: (
@@ -25,7 +31,7 @@ export const make = (socketPath: string): AgentClient => ({
   call: (method, params = {}) =>
     Effect.scoped(
       Effect.gen(function* () {
-        const socket = yield* BunSocket.makeNet({ path: socketPath }).pipe(
+        const socket = yield* NodeSocket.makeNet({ path: socketPath }).pipe(
           Effect.mapError(
             (cause) =>
               new ProtocolError({
@@ -67,7 +73,7 @@ export const make = (socketPath: string): AgentClient => ({
   subscribe: (params = {}) =>
     Stream.unwrap(
       Effect.gen(function* () {
-        const socket = yield* BunSocket.makeNet({ path: socketPath }).pipe(
+        const socket = yield* NodeSocket.makeNet({ path: socketPath }).pipe(
           Effect.mapError(
             (cause) =>
               new ProtocolError({

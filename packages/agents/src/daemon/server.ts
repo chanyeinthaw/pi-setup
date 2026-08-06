@@ -1,4 +1,4 @@
-import * as BunSocketServer from "@effect/platform-bun/BunSocketServer";
+import * as NodeSocketServer from "@effect/platform-node/NodeSocketServer";
 import * as Effect from "effect/Effect";
 import * as Fiber from "effect/Fiber";
 import * as PubSub from "effect/PubSub";
@@ -126,7 +126,7 @@ const handleSocket = (socket: Socket.Socket) =>
 export const serve = (socketPath: string) =>
   Effect.scoped(
     Effect.gen(function* () {
-      const server = yield* BunSocketServer.make({ path: socketPath });
+      const server = yield* NodeSocketServer.make({ path: socketPath });
       const fiber = yield* Effect.forkScoped(server.run(handleSocket));
       return yield* Fiber.join(fiber);
     }),

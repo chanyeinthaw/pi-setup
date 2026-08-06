@@ -13,7 +13,7 @@ import { runSubscription } from "./subscription.ts";
 const runtime = ManagedRuntime.make(BunServices.layer);
 
 export async function runTui() {
-  const renderer = await createCliRenderer({ exitOnCtrlC: false });
+  const renderer = await createCliRenderer({ exitOnCtrlC: false, targetFps: 60 });
   const store = createAgentStore();
   const fiber = runSubscription({ client: defaultClient, store, runtime });
   const commands = makeAgentCommands(defaultClient, store);
