@@ -12,6 +12,12 @@ import { runSubscription } from "./subscription.ts";
 
 const runtime = ManagedRuntime.make(BunServices.layer);
 
+// Force-initialize the daemon's socket chunk in the compiled binary. The TUI
+// bundle contains launcher.ts's `import("./program.ts")` (a lazy chunk that
+// owns Effect's Socket service). If that chunk never runs, NodeSocket.makeNet
+// throws `Socket.of is undefined` and the subscription hangs on "connecting".
+await import("@effect/platform-node/NodeSocketServer");
+
 export async function runTui() {
   const renderer = await createCliRenderer({ exitOnCtrlC: false, targetFps: 60 });
   const store = createAgentStore();

@@ -49,7 +49,7 @@ export default function (pi: ExtensionAPI) {
     deliveryFiber = runtime.runFork(
       Effect.forever(flush.pipe(Effect.andThen(Effect.sleep("1 second")))),
     );
-    return runtime.runPromise(flush);
+    runtime.runFork(flush);
   });
   pi.on("agent_end", () => runtime.runPromise(flush));
   pi.on("session_shutdown", async () => {

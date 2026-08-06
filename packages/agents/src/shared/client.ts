@@ -64,6 +64,15 @@ export const make = (socketPath: string): AgentClient => ({
         return yield* Deferred.await(response);
       }),
     ).pipe(
+      Effect.timeoutOrElse({
+        duration: "1 second",
+        orElse: () =>
+          Effect.fail(
+            new ProtocolError({
+              message: `Agent daemon at ${socketPath} did not respond within 1 second.`,
+            }),
+          ),
+      }),
       Effect.mapError((cause) =>
         cause instanceof ProtocolError
           ? cause
