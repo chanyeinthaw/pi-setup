@@ -16,12 +16,12 @@
     "lint": "oxlint --type-aware --type-check --deny-warnings .",
     "typecheck": "tsc --noEmit",
     "effect:diagnostics": "effect-tsgo diagnostics --project tsconfig.json",
-    "test": "vitest run packages/agents/test",
-    "agents": "bun packages/agents/src/main.tsx",
-    "agents:daemon": "bun packages/agents/src/daemon/main.ts",
-    "agents:build": "bun packages/agents/scripts/build.ts",
-    "agents:install": "pnpm agents:build && packages/agents/install.sh",
-    "agents:uninstall": "packages/agents/uninstall.sh",
+    "test": "vitest run packages/subagents/test",
+    "subagents": "bun packages/subagents/src/main.tsx",
+    "subagents:daemon": "bun packages/subagents/src/daemon/main.ts",
+    "subagents:build": "bun packages/subagents/scripts/build.ts",
+    "subagents:install": "pnpm subagents:build && packages/subagents/install.sh",
+    "subagents:uninstall": "packages/subagents/uninstall.sh",
     "prepare": "effect-tsgo patch --typescript --oxlint"
   },
   "dependencies": {

@@ -1,0 +1,22 @@
+{
+  "name": "@chan/subagents",
+  "version": "0.1.0",
+  "private": true,
+  "bin": {
+    "subagents": "./src/main.tsx"
+  },
+  "type": "module",
+  "scripts": {
+    "test": "vitest run test"
+  },
+  "dependencies": {
+    "@earendil-works/pi-ai": "^0.74.0",
+    "@earendil-works/pi-coding-agent": "^0.74.0",
+    "typebox": "^1.0.63"
+  },
+  "pi": {
+    "extensions": [
+      "./src/extension/index.ts"
+    ]
+  }
+}
