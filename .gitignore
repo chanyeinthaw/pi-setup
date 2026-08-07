@@ -1,7 +1,9 @@
 node_modules
 .DS_Store
 sessions
-skills
+skills/*
+!skills/make-document/
+!skills/make-document/**
 
 auth.json
 executor-sidecars.json

@@ -1,0 +1,227 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Example Infrastructure Cost-Optimization Proposal</title>
+<meta name="description" content="Evidence-led proposal to move Gairoushi from always-on ECS and Aurora capacity to AWS Lambda with Bref, PlanetScale Vitess, and Upstash Redis.">
+<style>
+:root{--bg:#efede7;--paper:#fbfaf6;--ink:#191918;--muted:#68665f;--line:#d7d3c9;--blue:#245b78;--green:#356a43;--amber:#92571f;--red:#913d37;--soft:#f4f2ec;--code:#232522;--white:#fff}*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--bg);color:var(--ink);font-family:"IBM Plex Mono","SFMono-Regular",Consolas,"Liberation Mono",monospace;font-size:14px;line-height:1.62}.shell{max-width:1440px;margin:auto;display:grid;grid-template-columns:260px minmax(0,1fr);gap:24px;padding:24px}.rail{position:sticky;top:20px;align-self:start;border:1px solid var(--line);background:var(--paper);padding:20px}.rail .mark{font-weight:800;font-size:13px;letter-spacing:.08em}.rail .sub{color:var(--muted);font-size:11px;margin:5px 0 22px}.rail a{display:block;color:var(--muted);text-decoration:none;padding:5px 0;font-size:11px}.rail a:hover{color:var(--blue)}.rail .state{margin-top:20px;padding-top:14px;border-top:1px solid var(--line);font-size:10px;color:var(--muted)}main{min-width:0}.paper{background:var(--paper);border:1px solid var(--line);box-shadow:0 14px 40px rgba(33,31,26,.07);padding:clamp(28px,5vw,76px);margin-bottom:24px}.kicker,.eyebrow{font-size:11px;letter-spacing:.13em;text-transform:uppercase;color:var(--blue);font-weight:700}.cover h1{font-size:clamp(34px,5vw,68px);line-height:1.03;letter-spacing:-.055em;margin:20px 0 22px;max-width:1000px}.lede{font-size:17px;line-height:1.55;max-width:880px;color:#343431}.meta{display:grid;grid-template-columns:repeat(4,1fr);gap:0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);margin:42px 0 34px}.meta div{padding:13px;border-right:1px solid var(--line)}.meta div:last-child{border-right:0}.meta span{display:block;color:var(--muted);font-size:9px;text-transform:uppercase;letter-spacing:.1em}.meta strong{font-size:12px}.hero-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}.metric{border:1px solid var(--line);padding:20px;background:var(--soft)}.metric small{display:block;color:var(--muted);text-transform:uppercase;letter-spacing:.09em;font-size:9px}.metric b{display:block;font-size:29px;letter-spacing:-.05em;margin-top:8px}.metric.good b{color:var(--green)}.note{border-left:3px solid var(--blue);background:#edf3f6;padding:15px 18px;margin:22px 0;color:#293c46}.warning{border-color:var(--amber);background:#f8f0e5;color:#4e3823}section{scroll-margin-top:20px}h2{font-size:25px;letter-spacing:-.035em;margin:0 0 22px;padding-bottom:13px;border-bottom:1px solid var(--line)}h3{font-size:16px;margin:30px 0 10px}h4{font-size:13px;margin:22px 0 8px}p{max-width:920px}ul,ol{max-width:930px;padding-left:22px}li{margin:5px 0}.tag{display:inline-block;border:1px solid var(--line);padding:2px 7px;margin:2px 4px 2px 0;font-size:9px;text-transform:uppercase;letter-spacing:.08em}.tag.observed{color:var(--blue);border-color:#8eb2c3}.tag.estimated{color:var(--amber);border-color:#c9a173}.tag.proposed{color:var(--green);border-color:#8db294}.grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px}.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}.card{border:1px solid var(--line);padding:18px;background:var(--soft)}.card h3{margin-top:0}.decision{border-top:4px solid var(--blue)}table{border-collapse:collapse;width:100%;margin:18px 0 26px;font-size:12px}th,td{text-align:left;vertical-align:top;border-bottom:1px solid var(--line);padding:10px 9px}th{font-size:9px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);background:var(--soft)}td.num,th.num{text-align:right;white-space:nowrap}.total td{font-weight:800;border-top:2px solid var(--ink)}code{background:#ece9e1;padding:2px 5px;font-family:inherit}.diagram{background:var(--code);color:#e8e8e1;padding:22px;overflow:auto;white-space:pre;font-size:12px;line-height:1.5;border-radius:2px}.bars{margin:18px 0}.bar{display:grid;grid-template-columns:48px 1fr 76px;align-items:center;gap:10px;margin:5px 0;font-size:10px}.bar-track{height:10px;background:#e2dfd7}.bar-fill{height:100%;background:var(--blue)}.bar.peak .bar-fill{background:var(--amber)}.formula{border:1px dashed #aaa59a;padding:16px;background:#f7f5ef;font-size:12px}.risk-high{color:var(--red);font-weight:700}.risk-med{color:var(--amber);font-weight:700}.risk-low{color:var(--green);font-weight:700}.timeline{counter-reset:phase}.phase{position:relative;padding:0 0 25px 52px;border-left:1px solid var(--line);margin-left:15px}.phase:before{counter-increment:phase;content:counter(phase);position:absolute;left:-16px;top:0;width:31px;height:31px;border-radius:50%;display:grid;place-items:center;background:var(--paper);border:1px solid var(--ink);font-weight:800}.phase h3{margin-top:0}.sources a{color:var(--blue);word-break:break-all}.footer{color:var(--muted);font-size:10px;text-align:center;padding:8px}.print-only{display:none}@media(max-width:980px){.shell{display:block;padding:10px}.rail{position:relative;margin-bottom:10px}.rail nav{columns:2}.meta,.hero-grid,.grid2,.grid3{grid-template-columns:1fr}.meta div{border-right:0;border-bottom:1px solid var(--line)}.paper{padding:28px}.cover h1{font-size:39px}}@media print{body{background:white;font-size:10pt}.shell{display:block;padding:0}.rail{display:none}.paper{border:0;box-shadow:none;margin:0;padding:14mm 12mm;page-break-after:auto}.cover{min-height:250mm}.print-only{display:block}h2{page-break-after:avoid}.card,table,.diagram,.note{page-break-inside:avoid}a{color:inherit;text-decoration:none}.footer{display:none}}
+
+/* Research-report presentation, aligned with MSB-CPU-Profile-Prisma-vs-SQL.html */
+:root{color-scheme:light;--bg:#fff;--paper:#fff;--ink:#000;--muted:#333;--line:#000;--blue:#000;--green:#000;--amber:#000;--red:#000;--soft:#fff;--code:#fff;--white:#fff}
+html{background:#fff;color:#000;font-family:ui-monospace,"SFMono-Regular","SF Mono",Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace;font-size:15px;line-height:1.58}
+body{background:#fff;color:#000}.shell{display:grid;grid-template-columns:230px minmax(0,980px);gap:42px;max-width:1290px;margin:0 auto;padding:0 24px}.rail{display:block;position:sticky;top:24px;align-self:start;height:fit-content;min-height:0;margin-top:54px;padding:18px 16px;border:1px solid #000;background:#fff}.rail .mark{font-size:.75rem;font-weight:700;letter-spacing:.06em}.rail .sub{margin:4px 0 18px;color:#000;font-size:.68rem}.rail nav{padding-top:12px;border-top:1px solid #000}.rail a{display:block;padding:5px 0;color:#000;font-size:.68rem;line-height:1.35;text-decoration:none}.rail a:hover,.rail a:focus{font-weight:700;text-decoration:underline;text-underline-offset:3px}.rail .state{margin-top:18px;padding-top:12px;border-top:1px solid #000;color:#000;font-size:.62rem;line-height:1.45}main{width:100%;min-width:0;margin:0;padding:54px 0 72px}.paper{background:#fff;border:0;box-shadow:none;padding:0;margin:0}.cover{margin-bottom:38px;padding:26px 0 24px;border-top:5px solid #000;border-bottom:1px solid #000}.kicker,.eyebrow{color:#000;font-size:.76rem;letter-spacing:.08em}.cover h1{max-width:900px;margin:12px 0 18px;font-size:clamp(2rem,4.2vw,3.15rem);line-height:1.08;letter-spacing:-.045em}.lede{max-width:800px;margin-bottom:26px;font-size:.98rem;line-height:1.58;color:#000}.target-brief{margin:26px 0 22px;border:1px solid #000}.target-title{padding:9px 12px;border-bottom:1px solid #000;font-size:.74rem;font-weight:700;text-transform:uppercase}.target-row{display:grid;grid-template-columns:130px repeat(3,1fr);border-bottom:1px solid #999}.target-row:last-child{border-bottom:0}.target-row>*{padding:11px 12px;border-right:1px solid #999}.target-row>*:last-child{border-right:0}.target-row strong{text-transform:uppercase;font-size:.74rem}.target-row span{font-size:.8rem}.cover-comparison{display:grid;grid-template-columns:1fr 1fr;margin:22px 0 0;border-top:1px solid #000;border-left:1px solid #000}.cover-comparison>div{padding:14px 16px;border-right:1px solid #000;border-bottom:1px solid #000}.comparison-title{margin-bottom:12px;font-size:.74rem;font-weight:700;text-transform:uppercase}.cover-comparison p{margin:4px 0;font-size:.82rem}.cover-comparison strong{display:block;margin-top:14px;font-size:1.1rem}.saving-strip{display:grid;grid-template-columns:1fr auto auto;align-items:baseline;gap:28px;padding:14px 16px;border:1px solid #000;border-top:0}.saving-strip span{font-size:.74rem;font-weight:700;text-transform:uppercase}.saving-strip strong{font-size:1.45rem}.saving-strip b{font-size:1.45rem}.cover-recommendation{margin:24px 0 16px;max-width:850px}.cover-meta{padding-top:12px;border-top:1px solid #999;font-size:.72rem}.cover-footnote{margin-top:7px;font-size:.68rem;color:#333}.meta{grid-template-columns:repeat(4,minmax(0,1fr));margin:0 0 24px;border-top:1px solid #000;border-left:1px solid #000;border-bottom:0}.meta div{padding:10px 12px;border-right:1px solid #000;border-bottom:1px solid #000}.meta span{color:#000;font-size:.7rem;font-weight:700;letter-spacing:0}.meta strong{font-size:.84rem}.hero-grid,.grid3{gap:0;margin:24px 0;border-top:1px solid #000;border-left:1px solid #000}.metric,.card{min-height:126px;padding:15px;border:0;border-right:1px solid #000;border-bottom:1px solid #000;background:#fff}.metric small{color:#000;font-size:.72rem;font-weight:700;letter-spacing:0}.metric b,.metric.good b{color:#000;font-size:clamp(1.65rem,3.5vw,2.55rem);line-height:1;margin:18px 0 7px}.decision{border-top:0}.grid2{gap:20px}.grid2>.card{border:1px solid #000}.note,.warning{margin:22px 0;padding:14px 16px;border:0;border-left:4px solid #000;background:#fff;color:#000}section.paper{margin:0}h2{margin:46px 0 18px;padding-bottom:7px;border-bottom:1px solid #000;font-size:1.35rem;line-height:1.25;letter-spacing:-.02em}h3{margin:28px 0 12px;font-size:1rem;line-height:1.35}h4{font-size:.92rem}p,li{max-width:90ch}.tag{border:1px solid #000;color:#000!important;font-size:.68rem}code{padding:.04em .22em;border:1px solid #999;background:#fff;color:#000}.diagram{overflow:auto;padding:15px 17px;border:1px solid #000;background:#fff;color:#000;font-size:.88rem;line-height:1.45;white-space:pre-wrap}.formula{border:1px solid #000;background:#fff}.table-wrap{overflow-x:auto;border:1px solid #000}table{margin:18px 0 26px;border:1px solid #000;font-variant-numeric:tabular-nums}th,td{padding:9px 11px;border-right:1px solid #999;border-bottom:1px solid #999;background:#fff;color:#000}th{font-size:.74rem;letter-spacing:0}th:last-child,td:last-child{border-right:0}tbody tr:last-child td{border-bottom:0}.total td{border-top:1px solid #000}.bars{padding:16px;border:1px solid #000}.bar{grid-template-columns:48px 1fr 76px}.bar-track{height:20px;border:1px solid #000;background:#fff}.bar-fill,.bar.peak .bar-fill{background:#000}.bar.peak .bar-fill{background-color:#fff;background-image:repeating-linear-gradient(135deg,#000 0,#000 2px,#fff 2px,#fff 6px)}.risk-high,.risk-med,.risk-low{color:#000}.timeline{margin-top:20px}.phase{border-left:1px solid #000}.phase:before{border:1px solid #000;background:#fff}.sources a{color:#000}.footer{margin-top:54px;padding:14px 0;border-top:2px solid #000;color:#000;text-align:left}.cover .note{margin-bottom:0}@media(max-width:1050px){.shell{grid-template-columns:190px minmax(0,1fr);gap:24px;padding:0 18px}.rail{padding:14px 12px}.rail a{font-size:.63rem}}
+@media(max-width:760px){.shell{display:block;padding:0 12px}.rail{position:relative;top:auto;margin:18px 0 0;padding:14px}.rail nav{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:18px}.rail .state{display:none}main{width:100%;padding-top:24px}.meta,.hero-grid,.grid2,.grid3,.cover-comparison{grid-template-columns:1fr}.target-row{grid-template-columns:1fr}.target-row>*{border-right:0;border-bottom:1px solid #999}.target-row>*:last-child{border-bottom:0}.saving-strip{grid-template-columns:1fr;gap:5px}.meta div{border-right:1px solid #000}.grid2{gap:0}.grid2>.card{border-bottom:0}.grid2>.card:last-child{border-bottom:1px solid #000}}@media print{@page{size:A4;margin:15mm}html{font-size:9.5pt}.shell{display:block;max-width:none;padding:0}.rail{display:none}main{width:100%;padding:0}.cover{min-height:auto}h2,h3{break-after:avoid}table,.diagram,.note,.card,.metric{break-inside:avoid}}
+</style>
+</head>
+<body>
+<div class="shell">
+<aside class="rail">
+  <div class="mark">OT / RESEARCH NOTE</div><div class="sub">Infrastructure economics · v1.0</div>
+  <nav>
+    <a href="#summary">01 Executive summary</a><a href="#evidence">02 Scope & evidence</a><a href="#current">03 Current architecture</a><a href="#baseline">04 Cost baseline</a><a href="#traffic">05 Workload analysis</a><a href="#hypothesis">06 Optimization hypothesis</a><a href="#target">07 Proposed architecture</a><a href="#planetscale">08 PlanetScale sizing</a><a href="#lambda">09 Bref / Lambda feasibility</a><a href="#upstash">10 Upstash Redis</a><a href="#cost">11 Cost comparison</a><a href="#scenarios">12 Scenario model</a><a href="#risks">13 Risks</a><a href="#migration">14 Migration plan</a><a href="#criteria">15 Success criteria</a><a href="#decision">16 Decision request</a><a href="#appendix">Appendices</a>
+  </nav>
+  <div class="state">STATUS<br><strong>PRELIMINARY PROPOSAL</strong><br><br>Confidence: directionally strong; prototype and load test required.</div>
+</aside>
+<main>
+<article class="paper cover decision-cover">
+  <div class="kicker">Gairoushi / Infrastructure economics / Preliminary</div>
+  <h1>Reduce idle infrastructure cost without reducing exam-day capacity.</h1>
+  <p class="lede">Gairoushi carries examination-scale application and database capacity during low-traffic periods. The proposed architecture scales Laravel compute per request and resizes database capacity around scheduled exams.</p>
+
+  <section class="target-brief" aria-label="Recommended target">
+    <div class="target-title">Recommended target</div>
+    <div class="target-row"><strong>Normal</strong><span>Lambda + Bref</span><span>PlanetScale PS-20</span><span>Upstash Redis</span></div>
+    <div class="target-row"><strong>Exam window</strong><span>Provisioned Lambda concurrency</span><span>PlanetScale PS-160</span><span>Upstash Redis</span></div>
+  </section>
+
+  <div class="cover-comparison">
+    <div><div class="comparison-title">Current</div><p>ECS Fargate, always running</p><p>Aurora, continuously provisioned</p><p>Database-backed sessions</p><strong>$354–374 / month</strong></div>
+    <div><div class="comparison-title">Proposed</div><p>Lambda, request-based</p><p>PlanetScale, scheduled resizing</p><p>Upstash Redis sessions and cache</p><strong>$70–105 / month</strong></div>
+  </div>
+
+  <div class="saving-strip"><span>Estimated monthly reduction</span><strong>$249–304</strong><b>67–81%</b></div>
+  <p class="cover-recommendation"><strong>Recommendation:</strong> approve a non-production prototype. Retain ECS and Aurora until a representative examination load test passes.</p>
+  <div class="cover-meta">Account 857205326792 · Evidence Jul 2026 billing + 07 Jun 2026 traffic · Prepared 04 Aug 2026</div>
+  <div class="cover-footnote">Planning estimate based on observed AWS billing and traffic. Final cost requires prototype telemetry and load testing.</div>
+</article>
+
+<section id="summary" class="paper">
+<h2>01. Executive summary</h2>
+<p>Gairoushi provisions application and database capacity continuously even though the workload is low during normal periods and sharply concentrated around scheduled examinations. The production ECS service averaged approximately <strong>2.5% CPU</strong> and <strong>6.5% memory</strong> in July. On 7 June, however, examination traffic reached <strong>2,919 requests in one minute</strong>, with a brief peak of <strong>510 HTTP requests in one second</strong>.</p>
+<p>The proposed model separates the low baseline from known peaks:</p>
+<div class="grid3">
+ <div class="card decision"><div class="eyebrow">Database</div><h3>PlanetScale Vitess</h3><p><strong>PS-20</strong> normally; resize to <strong>PS-160</strong> before examination windows. Billing is prorated by time at each size.</p></div>
+ <div class="card decision"><div class="eyebrow">Application</div><h3>AWS Lambda + Bref</h3><p>Serve Laravel dynamically through Lambda. Move static files to S3 and CloudFront; jobs to SQS-triggered Lambda.</p></div>
+ <div class="card decision"><div class="eyebrow">Session & cache</div><h3>Upstash Redis</h3><p>Use separate Redis databases for sessions and cache. Keep Lambda outside the VPC where practical.</p></div>
+</div>
+<div class="note"><strong>Recommendation:</strong> approve a non-production prototype. Do not decommission ECS or Aurora until the complete examination workflow passes correctness, latency, failure, and representative-load tests.</div>
+</section>
+
+<section id="evidence" class="paper">
+<h2>02. Scope and evidence</h2>
+<p>This proposal uses first-party infrastructure data, production logs, source code, and vendor documentation.</p>
+<table><thead><tr><th>Evidence</th><th>Use</th><th>Label</th></tr></thead><tbody>
+<tr><td>AWS Cost Explorer, ECS/RDS APIs</td><td>Billing categories, task sizes, cluster topology</td><td><span class="tag observed">Observed</span></td></tr>
+<tr><td>CloudWatch metrics and logs</td><td>Utilization, request volume, routes, peaks, errors</td><td><span class="tag observed">Observed</span></td></tr>
+<tr><td>Gairoushi source revision <code>52ca1cf…</code></td><td>Laravel read/write database configuration, sessions, file flows</td><td><span class="tag observed">Observed</span></td></tr>
+<tr><td>AWS, Bref, PlanetScale, Upstash documentation</td><td>Compatibility, limits, and pricing</td><td><span class="tag estimated">Published / Estimated</span></td></tr>
+<tr><td>Target architecture and sizes</td><td>Recommended future state</td><td><span class="tag proposed">Proposed</span></td></tr>
+</tbody></table>
+<p><strong>Evidence labels:</strong> “Observed” is measured directly; “Calculated” is derived from measured values; “Estimated” uses published rates and stated assumptions; “Proposed” is a recommendation requiring validation.</p>
+</section>
+
+<section id="current" class="paper">
+<h2>03. Current architecture</h2>
+<div class="diagram">Internet
+   │
+   ▼
+Application Load Balancer
+   │
+   ▼
+ECS Fargate — 2 always-running tasks
+├── Nginx container
+└── PHP-FPM / Laravel container
+   │
+   ├── DB_READ_HOST  ─────► Aurora reader endpoint
+   └── DB_WRITE_HOST ─────► Aurora writer endpoint
+                              │
+                     1 writer + 2 readers</div>
+<div class="grid2">
+<div><h3>Application tier</h3><ul><li>Two Fargate tasks, each 1 vCPU and 2 GB RAM</li><li>x86-64, Nginx plus PHP-FPM</li><li>Application Load Balancer</li><li>Average CPU: 2.5%; maximum: 68.8%</li><li>Average memory: 6.5%; maximum: 11.5%</li></ul></div>
+<div><h3>Database tier</h3><ul><li>Aurora MySQL, one writer and two readers</li><li>Normal: 3 × <code>db.t3.medium</code> — 2 vCPU, 4 GiB each</li><li>Exam spike: 3 × <code>db.r5.large</code> — 2 vCPU, 16 GiB each</li><li>Exam total: 6 vCPU and 48 GiB RAM</li><li>Laravel explicitly separates read and write hosts</li></ul></div>
+</div>
+</section>
+
+<section id="baseline" class="paper">
+<h2>04. Current cost baseline</h2>
+<div class="grid2"><div><h3>Database</h3><table><tr><th>Component</th><th class="num">Monthly</th></tr><tr><td>Gairoushi Aurora compute</td><td class="num">~$244</td></tr><tr><td>Storage and I/O allocation</td><td class="num">Variable</td></tr><tr class="total"><td>Database baseline</td><td class="num">$244+</td></tr></table></div>
+<div><h3>Application</h3><table><tr><th>Component</th><th class="num">Monthly</th></tr><tr><td>2 × Fargate tasks</td><td class="num">~$92</td></tr><tr><td>ALB base and variable usage</td><td class="num">~$18–38</td></tr><tr class="total"><td>Application baseline</td><td class="num">~$110–130</td></tr></table></div></div>
+<div class="metric"><small>Combined baseline</small><b>$354–374 / month</b><span>Approximately $4,250–4,490 per year</span></div>
+<p class="note warning">Account-level billing dimensions do not reliably attribute every storage, network, logging, or ALB charge to Gairoushi. The baseline is therefore a planning range.</p>
+</section>
+
+<section id="traffic" class="paper">
+<h2>05. Workload analysis</h2>
+<h3>7 June 2026 examination traffic</h3>
+<div class="grid3"><div class="metric"><small>External requests</small><b>178,245</b></div><div class="metric"><small>POST requests</small><b>35,078</b></div><div class="metric"><small>Peak minute</small><b>2,919</b><span>48.7 req/s average</span></div></div>
+<h3>Hourly external requests — JST</h3>
+<div class="bars">
+<div class="bar"><span>00</span><div class="bar-track"><div class="bar-fill" style="width:4%"></div></div><b>1,877</b></div><div class="bar"><span>06</span><div class="bar-track"><div class="bar-fill" style="width:4%"></div></div><b>1,777</b></div><div class="bar"><span>07</span><div class="bar-track"><div class="bar-fill" style="width:7%"></div></div><b>3,097</b></div><div class="bar"><span>08</span><div class="bar-track"><div class="bar-fill" style="width:41%"></div></div><b>18,794</b></div><div class="bar"><span>09</span><div class="bar-track"><div class="bar-fill" style="width:54%"></div></div><b>24,724</b></div><div class="bar peak"><span>10</span><div class="bar-track"><div class="bar-fill" style="width:97%"></div></div><b>44,695</b></div><div class="bar peak"><span>11</span><div class="bar-track"><div class="bar-fill" style="width:100%"></div></div><b>46,173</b></div><div class="bar"><span>12</span><div class="bar-track"><div class="bar-fill" style="width:12%"></div></div><b>5,677</b></div><div class="bar"><span>18</span><div class="bar-track"><div class="bar-fill" style="width:4%"></div></div><b>1,697</b></div><div class="bar"><span>23</span><div class="bar-track"><div class="bar-fill" style="width:4%"></div></div><b>1,961</b></div>
+</div>
+<div class="grid2"><div><h3>Dominant dynamic flows</h3><ul><li>Exam start and question list reads</li><li>Individual question pages</li><li>Exam-answer POSTs</li><li>Login, my page, and rehearsal flows</li><li>Database-backed session reads and writes</li></ul></div><div><h3>Noise to remove</h3><ul><li>Static CSS, JS, images, and fonts</li><li>Local curl probe every five seconds</li><li>ELB health checks</li><li>Health requests that initialize Laravel sessions</li></ul></div></div>
+<div class="note"><strong>Finding:</strong> about 75% of the day’s requests occurred from 08:00 through 12:00 JST. Normal traffic is low; examination traffic is scheduled and highly concentrated.</div>
+</section>
+
+<section id="hypothesis" class="paper">
+<h2>06. Optimization hypothesis</h2>
+<blockquote class="note">Gairoushi should not provision examination-day capacity continuously. It should operate at a small baseline and raise capacity only around known examination windows.</blockquote>
+<table><thead><tr><th>Initiative</th><th>Normal period</th><th>Exam window</th><th>After exam</th></tr></thead><tbody><tr><td>Database</td><td>PlanetScale PS-20</td><td>PlanetScale PS-160 initially</td><td>Return to PS-20</td></tr><tr><td>Application</td><td colspan="3">Lambda scales per request; optional provisioned concurrency around exams</td></tr><tr><td>Redis</td><td colspan="3">Upstash sessions/cache; measure commands and latency</td></tr></tbody></table>
+</section>
+
+<section id="target" class="paper">
+<h2>07. Proposed architecture</h2>
+<div class="diagram">                          ┌────────────────────┐
+Internet ──► CloudFront ──┤ Static assets: S3  │
+              │           └────────────────────┘
+              │ Dynamic routes
+              ▼
+       API Gateway HTTP API
+              │
+              ▼
+       AWS Lambda + Bref
+        Laravel runtime
+        │       │       │
+        ▼       ▼       ▼
+ PlanetScale  Upstash   S3 / SQS
+ Vitess       Redis     files / jobs
+ PS-20 ↔ PS-160
+
+Prefer Lambda outside the VPC:
+public TLS to PlanetScale and Upstash; managed AWS APIs for S3/SQS/SES.</div>
+<div class="grid3"><div class="card"><h3>Scale per request</h3><p>No continuously running Nginx or PHP-FPM tasks during idle periods.</p></div><div class="card"><h3>Separate assets</h3><p>CloudFront and S3 absorb static-file traffic without invoking PHP.</p></div><div class="card"><h3>Separate state</h3><p>PlanetScale stores durable business records; Upstash stores temporary sessions and cache.</p></div></div>
+</section>
+
+<section id="planetscale" class="paper">
+<h2>08. PlanetScale sizing proposal</h2>
+<table><thead><tr><th>Period</th><th>Size</th><th>Rationale</th><th class="num">Published cluster price*</th></tr></thead><tbody><tr><td>Normal</td><td><strong>PS-20</strong></td><td>Low normal traffic, safer margin than PS-10</td><td class="num">~$49 ARM / $59 x86</td></tr><tr><td>Exam</td><td><strong>PS-160</strong></td><td>Closest per-node match to 3 × db.r5.large</td><td class="num">$286 ARM / $349 x86</td></tr><tr><td>Future exam optimization</td><td>PS-80</td><td>Only after a successful representative load test</td><td class="num">$148 ARM / $179 x86</td></tr></tbody></table>
+<p>*High-availability Vitess production cluster; storage and egress may be additional. First 10 GB is included. HA network-attached storage beyond that is documented at an effective $1.50 per logical GB-month across one primary and two replicas.</p>
+<h3>Temporary resizing is prorated</h3>
+<div class="formula">Example, x86 in a 720-hour month:<br><br>PS-20 baseline = $59/month<br>PS-160 upgrade premium = ($349 − $59) ÷ 720 × 8 hours ≈ $3.22<br><strong>Estimated month with one 8-hour upgrade ≈ $62.22 plus storage/egress.</strong></div>
+<p>Resize one to two hours before an exam. Downsize only after answer submission, grading, and queue activity return to normal.</p>
+</section>
+
+<section id="lambda" class="paper">
+<h2>09. Bref / Lambda feasibility</h2>
+<div class="note"><strong>Conclusion: feasible with application changes.</strong> Bref runs complete Laravel HTTP applications through its PHP-FPM runtime on Lambda.</div>
+<div class="grid2"><div><h3>Compatible characteristics</h3><ul><li>Conventional Laravel HTTP application</li><li>Existing S3 and AWS SDK usage</li><li>No persistent ECS volume</li><li>Low average, bursty traffic</li><li>No application websocket server identified</li><li>PDF and Excel can run if they fit Lambda limits</li></ul></div><div><h3>Required changes</h3><ol><li>Upgrade unsupported PHP 8.0 and Laravel 8</li><li>Add Bref and Laravel Bridge</li><li>Move static assets to S3/CloudFront</li><li>Move sessions/cache to Upstash</li><li>Use <code>/tmp</code> only for temporary files</li><li>Use direct S3 uploads for large files</li><li>Move long work to SQS-triggered Lambda</li><li>Apply reserved concurrency</li></ol></div></div>
+<h3>Key constraints</h3>
+<table><thead><tr><th>Constraint</th><th>Implication</th><th>Response</th></tr></thead><tbody><tr><td>Cold starts, typically a small fraction of traffic</td><td>Added latency, especially for large legacy apps</td><td>Optimize package; provision concurrency during exams</td></tr><tr><td>15-minute invocation maximum</td><td>Long imports/reports cannot remain synchronous</td><td>Split work or retain a dedicated job path</td></tr><tr><td>Read-only package filesystem</td><td>File sessions/cache and durable uploads fail</td><td>Use Upstash, S3, and <code>/tmp</code></td></tr><tr><td>HTTP upload/payload limits</td><td>Large Excel/image uploads may fail</td><td>Presigned direct-to-S3 upload</td></tr><tr><td>Fast concurrency growth</td><td>Can overload PS-20 or Redis</td><td>Reserved concurrency and load-tested limits</td></tr></tbody></table>
+</section>
+
+<section id="upstash" class="paper">
+<h2>10. Upstash Redis design</h2>
+<p>Upstash matches the serverless operating model and avoids retaining an always-on ElastiCache node or placing Lambda in a VPC solely for Redis.</p>
+<div class="grid2"><div class="card"><h3>Production sessions</h3><ul><li>Dedicated Upstash database</li><li>TTL longer than the full exam window</li><li>No cache flush coupling</li><li>Monitor p95 latency and errors</li></ul></div><div class="card"><h3>Application cache</h3><ul><li>Separate database</li><li>Safe to flush independently</li><li>Rate limits and short-lived locks</li><li>Explicit TTLs and budget alerts</li></ul></div></div>
+<h3>Published pricing</h3>
+<table><thead><tr><th>Option</th><th>Rate</th><th>Use in proposal</th></tr></thead><tbody><tr><td>Pay as you go</td><td>$0.20 / 100K commands</td><td>Good for prototype and uncertain low baseline</td></tr><tr><td>Storage</td><td>First 1 GB free; then $0.25 / GB</td><td>Sessions/cache expected to remain small</td></tr><tr><td>Bandwidth</td><td>First 200 GB/month free; then $0.03 / GB</td><td>Likely low, but measure</td></tr><tr><td>Fixed 250 MB</td><td>$10/month</td><td>Predictable production alternative</td></tr><tr><td>Prod Pack add-on</td><td>+$200/month/database</td><td>Not included in expected case; evaluate SLA/HA requirement</td></tr></tbody></table>
+<div class="note warning"><strong>Important:</strong> use Upstash only for temporary state—sessions, cache, counters, and short locks. Exam answers and auditable business records remain in PlanetScale. The final plan must be chosen after measuring commands per request and exam-period command throughput.</div>
+</section>
+
+<section id="cost" class="paper">
+<h2>11. Cost comparison</h2>
+<table><thead><tr><th>Area</th><th class="num">Current</th><th class="num">Proposed planning range</th><th>Assumption</th></tr></thead><tbody><tr><td>Database</td><td class="num">$244+</td><td class="num">$50–105</td><td>PS-20 baseline, temporary exam resize, modest storage</td></tr><tr><td>Application compute & HTTP</td><td class="num">$110–130</td><td class="num">$10–25</td><td>Lambda/Bref, API Gateway, S3/CloudFront, logs</td></tr><tr><td>Redis</td><td class="num">Embedded in DB/session load</td><td class="num">$1–10</td><td>PAYG or fixed 250 MB; excludes Prod Pack</td></tr><tr class="total"><td>Combined</td><td class="num">$354–374</td><td class="num">$70–105</td><td>Rounded proposal range</td></tr></tbody></table>
+<div class="hero-grid"><div class="metric good"><small>Monthly saving</small><b>$249–304</b></div><div class="metric good"><small>Annual saving</small><b>$2,990–3,650</b></div><div class="metric good"><small>Reduction</small><b>67–81%</b></div></div>
+<h3>Lambda sensitivity</h3>
+<table><thead><tr><th>Dynamic requests/month</th><th>Memory</th><th>Average duration</th><th class="num">Approx. Lambda + HTTP API</th></tr></thead><tbody><tr><td>100K</td><td>1 GB</td><td>200 ms</td><td class="num">~$0.50</td></tr><tr><td>500K</td><td>1 GB</td><td>200–500 ms</td><td class="num">~$2.60–5.60</td></tr><tr><td>1M</td><td>1 GB</td><td>500 ms</td><td class="num">~$11</td></tr><tr><td>3M</td><td>1 GB</td><td>500 ms</td><td class="num">~$34</td></tr></tbody></table>
+<p>Rates are conservative planning approximations for Tokyo and do not apply shared AWS free-tier credits. Static assets must be excluded from Lambda requests.</p>
+</section>
+
+<section id="scenarios" class="paper">
+<h2>12. Scenario model</h2>
+<table><thead><tr><th>Scenario</th><th>Database</th><th>Lambda</th><th>Upstash</th><th class="num">Monthly</th><th>Confidence</th></tr></thead><tbody><tr><td>Conservative</td><td>PS-20; PS-160 for full exam days</td><td>2 GB, provisioned concurrency, higher logs</td><td>Fixed + extra resilience evaluation</td><td class="num">$100–140</td><td>Medium</td></tr><tr><td><strong>Expected</strong></td><td>PS-20; PS-160 for ~8-hour windows</td><td>1 GB, limited provisioned concurrency</td><td>PAYG or fixed 250 MB</td><td class="num"><strong>$70–105</strong></td><td>Medium</td></tr><tr><td>Optimized</td><td>PS-10; PS-80 for exams</td><td>ARM, tuned package and routes</td><td>PAYG</td><td class="num">$45–75</td><td>Low until tested</td></tr></tbody></table>
+<p>Do not reduce both normal and exam database sizes simultaneously. Validate PS-20/PS-160 first, then optimize one dimension at a time.</p>
+</section>
+
+<section id="risks" class="paper">
+<h2>13. Risks and mitigations</h2>
+<table><thead><tr><th>Risk</th><th>Level</th><th>Mitigation</th></tr></thead><tbody><tr><td>Lost or inconsistent exam state</td><td class="risk-high">High</td><td>End-to-end exam tests; durable answers only in PlanetScale; rollback path</td></tr><tr><td>Lambda concurrency overloads PS-20</td><td class="risk-high">High</td><td>Reserved concurrency, load test, scheduled resize</td></tr><tr><td>PHP/Laravel upgrade regression</td><td class="risk-high">High</td><td>Modernize before infrastructure cutover; regression suite</td></tr><tr><td>Cold-start latency</td><td class="risk-med">Medium</td><td>Package optimization and temporary provisioned concurrency</td></tr><tr><td>Large uploads or reports</td><td class="risk-med">Medium</td><td>Direct S3 upload; async report generation</td></tr><tr><td>Upstash session latency/outage</td><td class="risk-high">High</td><td>Nearest region, separate session DB, timeouts, monitoring, recovery runbook</td></tr><tr><td>Read-after-write behavior</td><td class="risk-high">High</td><td>Test submit → redirect → next question and answer changes</td></tr><tr><td>Estimate variance</td><td class="risk-med">Medium</td><td>Prototype telemetry and budget alerts</td></tr><tr><td>Vendor migration lock-in</td><td class="risk-low">Low/Med</td><td>Standard MySQL/Redis interfaces; documented export and rollback</td></tr></tbody></table>
+</section>
+
+<section id="migration" class="paper">
+<h2>14. Migration plan</h2>
+<div class="timeline">
+<div class="phase"><h3>Measurement</h3><p>Record logical DB size, request latency, file upload sizes, long-running jobs, Redis command estimate, and candidate counts.</p></div>
+<div class="phase"><h3>Application modernization</h3><p>Upgrade PHP/Laravel; create a database-free health endpoint; move sessions/cache; externalize static assets.</p></div>
+<div class="phase"><h3>Bref and Upstash prototype</h3><p>Deploy staging Lambda outside the VPC; validate login, CSRF, session expiry, files, PDF, Excel, admin flows, and logs.</p></div>
+<div class="phase"><h3>PlanetScale prototype</h3><p>Validate schema compatibility, transactions, read-after-write behavior, migration, restore, and resize procedures.</p></div>
+<div class="phase"><h3>Representative load test</h3><p>Sustain 49 dynamic req/s, test 100+ req/s bursts, submit answers concurrently, and run a controlled 510-request burst.</p></div>
+<div class="phase"><h3>Parallel production validation</h3><p>Retain ECS/Aurora rollback; route limited traffic; compare correctness, latency, and cost.</p></div>
+<div class="phase"><h3>Production migration</h3><p>Cut over outside exam windows. Observe one complete exam event before optimizing sizes or decommissioning the old stack.</p></div>
+</div>
+</section>
+
+<section id="criteria" class="paper">
+<h2>15. Success criteria</h2>
+<div class="grid3"><div class="card"><h3>Correctness</h3><ul><li>No lost or duplicated answers</li><li>Correct session and CSRF behavior</li><li>PDF, Excel, upload, and admin flows pass</li><li>Rollback tested</li></ul></div><div class="card"><h3>Performance</h3><ul><li>Agreed p95/p99 latency</li><li>No DB connection saturation</li><li>Exam load passes with headroom</li><li>Resize completes before traffic</li></ul></div><div class="card"><h3>Economics</h3><ul><li>Application hosting below $25/month normally</li><li>PS-20 normal baseline</li><li>At least 60% combined reduction</li><li>No unexpected NAT/egress cost</li></ul></div></div>
+</section>
+
+<section id="decision" class="paper">
+<h2>16. Recommendation and decision request</h2>
+<p class="lede">Approve a time-boxed, non-production prototype for Laravel on Bref, PlanetScale Vitess, and Upstash Redis. Proceed to migration planning only if the prototype meets correctness, representative-load, latency, operability, and cost criteria.</p>
+<div class="grid3"><div class="card decision"><h3>Approve prototype</h3><p>Recommended. Produces the missing evidence at limited production risk.</p></div><div class="card"><h3>Request more measurement</h3><p>Use if database size, candidate counts, or upload/report constraints are not yet known.</p></div><div class="card"><h3>Optimize in place</h3><p>Alternative: right-size ECS/Aurora, move sessions, fix health checks, and retain current platforms.</p></div></div>
+</section>
+
+<section id="appendix" class="paper">
+<h2>Appendices</h2>
+<h3>A. Resource comparison</h3>
+<table><thead><tr><th>Resource</th><th>Per-node CPU</th><th>Per-node RAM</th><th>Topology / use</th></tr></thead><tbody><tr><td>Aurora db.t3.medium</td><td>2 burstable vCPU</td><td>4 GiB</td><td>Normal current DB</td></tr><tr><td>Aurora db.r5.large</td><td>2 vCPU</td><td>16 GiB</td><td>Exam current DB</td></tr><tr><td>PlanetScale PS-20</td><td>~¼ vCPU</td><td>2 GB</td><td>Proposed normal HA cluster</td></tr><tr><td>PlanetScale PS-80</td><td>1 vCPU</td><td>8 GB</td><td>Potential optimized exam cluster</td></tr><tr><td>PlanetScale PS-160</td><td>2 vCPU</td><td>16 GB</td><td>Conservative exam cluster</td></tr><tr><td>Lambda 1 GB</td><td>Proportional CPU</td><td>1 GB</td><td>Initial HTTP runtime candidate</td></tr></tbody></table>
+<h3>B. Cost assumptions</h3>
+<ul><li>Current Gairoushi Aurora compute: approximately $244/month based on July billed class usage.</li><li>Current Fargate service: two 1-vCPU/2-GB tasks continuously, approximately $92/month plus ALB and variable charges.</li><li>PlanetScale prices are current published self-serve HA Vitess rates; resizing is prorated.</li><li>Lambda estimates use request and GB-second formulas with conservative Tokyo approximations.</li><li>Upstash expected case excludes the $200/database Prod Pack; production SLA requirements must be decided explicitly.</li><li>Proposed range includes a modest allowance for storage, egress, logs, and exam resize time.</li></ul>
+<h3>C. First-party sources</h3>
+<ol class="sources"><li>AWS Cost Explorer and CloudWatch outputs for account 857205326792.</li><li>Gairoushi source: <code>git@github.com:one-terrace/gairoushi.git</code>, historical revision <code>52ca1cf5099e859acb2fa4c28d383cefacf9f020</code>.</li><li><a href="https://planetscale.com/pricing">https://planetscale.com/pricing</a></li><li><a href="https://planetscale.com/docs/planetscale-plans">https://planetscale.com/docs/planetscale-plans</a></li><li><a href="https://bref.sh/docs/">https://bref.sh/docs/</a></li><li><a href="https://bref.sh/docs/laravel/getting-started">https://bref.sh/docs/laravel/getting-started</a></li><li><a href="https://bref.sh/docs/runtimes/fpm-runtime">https://bref.sh/docs/runtimes/fpm-runtime</a></li><li><a href="https://aws.amazon.com/lambda/pricing/">https://aws.amazon.com/lambda/pricing/</a></li><li><a href="https://aws.amazon.com/fargate/pricing/">https://aws.amazon.com/fargate/pricing/</a></li><li><a href="https://upstash.com/pricing/redis">https://upstash.com/pricing/redis</a></li></ol>
+</section>
+<div class="footer">Gairoushi Infrastructure Cost-Optimization Proposal · Preliminary · 04 Aug 2026<br>Prepared by Chan Nyein Thaw · <a href="mailto:chanyeinthaw@gmail.com">chanyeinthaw@gmail.com</a></div>
+</main></div>
+</body></html>
