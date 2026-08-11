@@ -5,12 +5,14 @@ import type { AgentClient } from "../src/shared/client.ts";
 import { executeSubagentsTool } from "../src/extension/tool-service.ts";
 it.effect("subagents tool discovers locally and maps execution to daemon methods", () =>
   Effect.gen(function* () {
-    const calls: Array<[string, Record<string, unknown>]> = [];
+    const calls: Array<
+      [string, Record<string, unknown>, { readonly timeout?: number | false } | undefined]
+    > = [];
     const client: AgentClient = {
       subscribe: () => Stream.empty,
-      call: (method, params = {}) =>
+      call: (method, params = {}, options) =>
         Effect.sync(() => {
-          calls.push([method, params]);
+          calls.push([method, params, options]);
           return { agent: { slug: "audit", status: "running", cwd: "/repo" } };
         }),
     };
@@ -40,6 +42,13 @@ it.effect("subagents tool discovers locally and maps execution to daemon methods
         parentSessionId: "parent",
         parentSessionFile: undefined,
       },
+      undefined,
     ]);
+    yield* executeSubagentsTool(
+      client,
+      { action: "execute", capability: "wait", arguments: { agent: "audit" } },
+      { cwd: "/repo", parentSessionId: "parent" },
+    );
+    assert.deepStrictEqual(calls[1][2], { timeout: false });
   }),
 );

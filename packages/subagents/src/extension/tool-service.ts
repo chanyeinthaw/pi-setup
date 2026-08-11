@@ -58,7 +58,10 @@ export const executeSubagentsTool = (
     } else if (execution.capability === "status") params.transcript ??= "recent";
     else if (execution.capability === "wait")
       params = { agent: params.agent, parentSessionId: context.parentSessionId };
-    const result = yield* client.call(methods[execution.capability], params);
+    const result =
+      execution.capability === "wait"
+        ? yield* client.call(methods[execution.capability], params, { timeout: false })
+        : yield* client.call(methods[execution.capability], params);
     return { text: format(execution.capability, result), details: result };
   });
 function format(capability: string, result: any) {
