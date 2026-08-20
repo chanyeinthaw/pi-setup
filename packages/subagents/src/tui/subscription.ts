@@ -9,13 +9,15 @@ export const runSubscription = <R>(options: {
   readonly client: AgentClient;
   readonly store: AgentStore;
   readonly runtime: ManagedRuntime<R, never>;
+  readonly cwd?: string;
 }) => {
   let attempt = 0;
   return options.runtime.runFork(
     Effect.forever(
       Effect.gen(function* () {
         options.store.setConnection(attempt === 0 ? "connecting" : "disconnected");
-        const result = yield* Stream.runForEach(options.client.subscribe(), (message) =>
+        const params = options.cwd ? { cwd: options.cwd } : {};
+        const result = yield* Stream.runForEach(options.client.subscribe(params), (message) =>
           Effect.sync(() => options.store.apply(message)),
         ).pipe(Effect.exit);
         if (result._tag === "Failure") {

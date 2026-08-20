@@ -4,6 +4,9 @@ sessions
 skills/*
 !skills/make-document/
 !skills/make-document/**
+!skills/ot-opennext-release-v1/
+!skills/ot-opennext-release-v1/**
+!skills/file-pr/**
 
 auth.json
 executor-sidecars.json

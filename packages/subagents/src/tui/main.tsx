@@ -18,10 +18,12 @@ const runtime = ManagedRuntime.make(BunServices.layer);
 // throws `Socket.of is undefined` and the subscription hangs on "connecting".
 await import("@effect/platform-node/NodeSocketServer");
 
-export async function runTui() {
+export async function runTui(options: { readonly cwd?: string } = {}) {
+  const hasExplicitCwd = Object.prototype.hasOwnProperty.call(options, "cwd");
+  const cwd = hasExplicitCwd ? options.cwd : process.cwd();
   const renderer = await createCliRenderer({ exitOnCtrlC: false, targetFps: 60 });
   const store = createAgentStore();
-  const fiber = runSubscription({ client: defaultClient, store, runtime });
+  const fiber = runSubscription({ client: defaultClient, store, runtime, cwd });
   const commands = makeAgentCommands(defaultClient, store);
   renderer.once("destroy", () => {
     runtime.runFork(Fiber.interrupt(fiber));

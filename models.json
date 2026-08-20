@@ -10,7 +10,10 @@
           "name": "Sol",
           "reasoning": true,
           "maxTokens": 128000,
-          "input": ["text", "image"],
+          "input": [
+            "text",
+            "image"
+          ],
           "contextWindow": 272000,
           "thinkingLevelMap": {
             "off": "none",
@@ -27,7 +30,10 @@
           "name": "Terra",
           "reasoning": true,
           "maxTokens": 128000,
-          "input": ["text", "image"],
+          "input": [
+            "text",
+            "image"
+          ],
           "contextWindow": 272000,
           "thinkingLevelMap": {
             "off": "none",
@@ -44,7 +50,30 @@
           "name": "Luna",
           "reasoning": true,
           "maxTokens": 128000,
-          "input": ["text", "image"],
+          "input": [
+            "text",
+            "image"
+          ],
+          "contextWindow": 272000,
+          "thinkingLevelMap": {
+            "off": "none",
+            "minimal": "none",
+            "low": "low",
+            "medium": "medium",
+            "high": "high",
+            "xhigh": "xhigh",
+            "max": "max"
+          }
+        },
+        {
+          "id": "gpt-5.6-luna-fast",
+          "name": "Luna ⚡︎",
+          "reasoning": true,
+          "maxTokens": 128000,
+          "input": [
+            "text",
+            "image"
+          ],
           "contextWindow": 272000,
           "thinkingLevelMap": {
             "off": "none",

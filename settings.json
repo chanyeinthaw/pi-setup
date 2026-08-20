@@ -2,7 +2,7 @@
   "lastChangelogVersion": "0.84.1",
   "defaultProvider": "openai-multi",
   "defaultModel": "gpt-5.6-sol",
-  "defaultThinkingLevel": "high",
+  "defaultThinkingLevel": "medium",
   "packages": [
     "npm:pi-mcp-adapter",
     "npm:@victor-software-house/pi-curated-themes",
@@ -22,9 +22,10 @@
     "opencode-go/glm-5.2",
     "openai-multi/gpt-5.6-sol",
     "openai-multi/gpt-5.6-terra",
-    "openai-multi/gpt-5.6-luna"
+    "openai-multi/gpt-5.6-luna",
+    "opencode-go/muse-spark-1.2-contributor"
   ],
-  "hideThinkingBlock": false,
+  "hideThinkingBlock": true,
   "showHardwareCursor": false,
   "terminal": {
     "showTerminalProgress": false

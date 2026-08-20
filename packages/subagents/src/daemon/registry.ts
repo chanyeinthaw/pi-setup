@@ -2,6 +2,7 @@ import * as SqlClient from "effect/unstable/sql/SqlClient";
 import * as Context from "effect/Context";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
+import { resolve } from "node:path";
 import type { AgentRecord, AgentStatus, DeliveryRecord } from "../shared/domain.ts";
 import { AgentError } from "../shared/domain.ts";
 import type { TranscriptRecord } from "../shared/notifications.ts";
@@ -228,7 +229,7 @@ const make = Effect.gen(function* () {
       }
       if (f.cwd) {
         clauses.push("cwd=?");
-        p.push(f.cwd);
+        p.push(resolve(f.cwd));
       }
       if (f.status) {
         clauses.push("status=?");

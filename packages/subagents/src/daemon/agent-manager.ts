@@ -5,6 +5,7 @@ import * as Fiber from "effect/Fiber";
 import * as Layer from "effect/Layer";
 import * as Scope from "effect/Scope";
 import * as Stream from "effect/Stream";
+import { resolve } from "node:path";
 import type { AgentRecord } from "../shared/domain.ts";
 import { AgentError } from "../shared/domain.ts";
 import { AgentRegistry } from "./registry.ts";
@@ -54,12 +55,13 @@ const make = Effect.gen(function* () {
         let suffix = 2;
         while (yield* registry.get(slug)) slug = `${base}-${suffix++}`;
         const now = Date.now();
+        const normalizedCwd = resolve(params.cwd);
         const record: AgentRecord = {
           id,
           slug,
           name: params.name,
           prompt: params.prompt,
-          cwd: params.cwd,
+          cwd: normalizedCwd,
           parentSessionId: params.parentSessionId,
           parentSessionFile: params.parentSessionFile,
           model: params.model,

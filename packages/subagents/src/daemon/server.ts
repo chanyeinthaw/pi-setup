@@ -3,6 +3,7 @@ import * as Effect from "effect/Effect";
 import * as Fiber from "effect/Fiber";
 import * as PubSub from "effect/PubSub";
 import * as Socket from "effect/unstable/socket/Socket";
+import { resolve } from "node:path";
 import { AgentError } from "../shared/domain.ts";
 import { AgentManager } from "./agent-manager.ts";
 import { AgentNotifications } from "./notifications.ts";
@@ -98,7 +99,23 @@ const handleSocket = (socket: Socket.Socket) =>
               const registry = yield* AgentRegistry;
               const notifications = yield* AgentNotifications;
               const subscription = yield* notifications.subscribe;
-              const agents = yield* registry.list(request.params ?? {});
+              const rawFilters = (request.params ?? {}) as Record<string, unknown>;
+              const cwdFilter =
+                typeof rawFilters.cwd === "string" ? resolve(rawFilters.cwd) : undefined;
+              const parentFilter =
+                typeof rawFilters.parentSessionId === "string"
+                  ? rawFilters.parentSessionId
+                  : undefined;
+              const statusFilter =
+                typeof rawFilters.status === "string" ? rawFilters.status : undefined;
+              const queryFilter =
+                typeof rawFilters.query === "string"
+                  ? rawFilters.query.toLowerCase()
+                  : undefined;
+              const filters: Record<string, unknown> = { ...rawFilters };
+              if (cwdFilter) filters.cwd = cwdFilter;
+              else delete (filters as any).cwd;
+              const agents = yield* registry.list(filters as any);
               const entries = yield* Effect.forEach(agents, (agent) =>
                 registry
                   .transcriptItems(agent.id)
@@ -111,8 +128,29 @@ const handleSocket = (socket: Socket.Socket) =>
                   transcripts: Object.fromEntries(entries),
                 }),
               );
+              const visibleIds = new Set(agents.map((a) => a.id));
+              const matchesCwd = (agentCwd: string) =>
+                !cwdFilter || resolve(agentCwd) === cwdFilter;
+              const matchesParent = (parentSessionId?: string) =>
+                !parentFilter || parentSessionId === parentFilter;
+              const matchesStatus = (status: string) =>
+                !statusFilter || status === statusFilter;
+              const matchesQuery = (agent: { slug: string; name: string }) =>
+                !queryFilter ||
+                agent.slug.toLowerCase().includes(queryFilter) ||
+                agent.name.toLowerCase().includes(queryFilter);
               while (true) {
-                yield* write(encodeJson(yield* PubSub.take(subscription)));
+                const msg = yield* PubSub.take(subscription);
+                if (msg.type === "agent.created" || msg.type === "agent.updated") {
+                  if (!matchesCwd(msg.agent.cwd)) continue;
+                  if (!matchesParent(msg.agent.parentSessionId)) continue;
+                  if (!matchesStatus(msg.agent.status)) continue;
+                  if (!matchesQuery(msg.agent)) continue;
+                  visibleIds.add(msg.agent.id);
+                } else if (msg.type === "transcript.appended") {
+                  if (!visibleIds.has(msg.agentId)) continue;
+                }
+                yield* write(encodeJson(msg));
               }
             }
             const response = yield* handleLine(line);

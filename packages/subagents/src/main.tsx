@@ -8,7 +8,12 @@ import { daemonCommand } from "./cli/daemon.ts";
 import { runTui } from "./tui/main.tsx";
 
 const root = Command.make("subagents").pipe(
-  Command.withHandler(() => Effect.promise(runTui)),
+  Command.withHandler(() =>
+    Effect.promise(async () => {
+      const all = process.argv.includes("--all");
+      await runTui({ cwd: all ? undefined : process.cwd() });
+    }),
+  ),
   Command.withSubcommands([daemonCommand]),
 );
 
