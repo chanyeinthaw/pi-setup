@@ -1,67 +1,63 @@
-# Global instructions
+I'm Chan. You are my agent. We will be working together a lot, so I thought it would be worth introducing myself.
 
-These instructions has highest priority.
+I may communicate in languages other than English, but the you MUST always respond in English. I focus on building complex things as simple as possible. I love to find ways to reduce complexity when solving problems.
 
-## Your boss
+Here are some of my preferences so we can be more aligned as we work together.
 
-- My name is Chan.
-- I may communicate in languages other than English, but the you MUST always respond in English.
-- When I ask you to simplify your response, use ASD-STE100 Simplified Technical English.
+# Coding preferences - general
 
-## Pi
+- Keep things simple. Channel "yagni" energy unless told otherwise.
+- Typesafety is useful, take advantage of it.
+- Don't be scared to propose bold ideas if they can meaningfully benefit our work.
+- Be careful with destructive actions that are not explicitly requested by the user.
+- Tests are good! Endless msoke tests, "regression tests" for feature deletions, etc, much less good. Tests should be focused, not slop.
+- Comments are a great way to clarify functionality and how code is used. Don't comment every line, but feel free to describe (concisely) how functions are used above function definitions, classes etc.
+- Keep comments up to date! When making changes, it's important to keep things in sync.
 
-- Pi does not natively support subagents. If a skill or other instruction asks for subagent work, do it directly in the current session.
-- Executor is code-mode MCP and API integration layer. Use it to discover and invoke configured integrations and their tools when those integrations are relevant to the task.
+# Coding preferences - Typescript focused
 
-## Tailscale mesh and development hosts
+- `any` is the enemy. Inferred types are our friend. Our systems should adapt to changes, instead of requiring changes everywhere.
+- If your TS code looks like a Python dev wrote it, it is bad TS code.
+- Avoid one-line functions that re just casting wrappers.
+- Write TypeScript in ways that Matt Pocock would be proud of.
+- If not already specified in project, I generally like to use the following tech: Next.js, Tailwind, React, Vite, pnpm and Effect.
+- When building more complex web and react native apps, I like to pull in xstate (alpha), [effect-machine](https://github.com/typeonce-dev/effect-machine) (xstate in effect), Tanstack/React Query, better-auth, [better-upload](https://better-upload.com/) and Effect Schema (or zod)
+- Effect should be the default consideration for our systems.
 
-The development machines are connected through a Tailscale mesh:
+# Questions are read-only
 
-| Host      | Machine        | Primary user                                | Purpose                                                |
-| --------- | -------------- | ------------------------------------------- | ------------------------------------------------------ |
-| `silicon` | Linux server   | `chan` or `pinn`, depending on who connects | All development projects and shared services live here |
-| `oxygen`  | Chan's MacBook | `chan`                                      | Chan's client development machine                      |
-| `athena`  | Pinn's MacBook | `pinn`                                      | Pinn's client development machine                      |
+- A question is a request for an answer, not for changes. If the message opens with "how hard would it be", "what are your thoughts", "why does", "should we", "is it possible", "can X do Y" or otherwise asks rather than instruct: answer it, and do not edit files.
+- If the answer is obvious and the change is trivial, still answer first and offer the change. Ask before making it.
 
-- From `oxygen`, `ssh silicon` connects to `silicon` as `chan`.
-- From `athena`, `ssh silicon` connects to `silicon` as `pinn`.
-- Host aliases and SSH configuration resolve the correct user automatically.
+# Match ceremony to the task
 
-Reverse access is user-specific on `silicon`:
+- Do not go into subagents or a multi-agent workflow for work a single agent finishes in one pass. Delegation is for breadth or adversarial review, not for ordinary tasks.
+- When several agents do work in parallel, state file ownership up front so they do not collide.
 
-- When operating as `chan` on `silicon`, `ssh oxygen` connects to Chan's MacBook.
-- When operating as `pinn` on `silicon`, `ssh athena` connects to Pinn's MacBook.
+# Visual and design work
 
-> Chan's account can not SSH to `athena`, and Pinn's account can not SSH to `oxygen`. Prefer these host aliases rather than hard-coded Tailscale IP addresses.
+- Avoid continuously repainting CSS animations (pulse, shimmer, blur, spinners); they peg the GPU on high-refresh displays.
 
-## Shared development services
+# Blast radius
 
-Shared development infrastructure runs from `/home/chan/Services`. It is for development and test data only. Prefer these services instead of starting duplicate MySQL, PostgreSQL, Redis, or MinIO instances when they fit the task.
+- Never touch production, live databases or daily-driver build/preview channels unless explicitly told to. When a task is adjacent to any of them, name what you are about to touch before touching it.
 
-| Service         | Endpoint                        | User/access key | Password/secret key | Default database |
-| --------------- | ------------------------------- | --------------- | ------------------- | ---------------- |
-| MySQL 8.4       | `mysql.app.si14.space:3306`       | `developer`     | `dev-mysql`         | `development`    |
-| PostgreSQL 18.4 | `pg.app.si14.space:5432`          | `developer`     | `dev-postgres`      | `development`    |
-| Redis 8         | `redis.app.si14.space:6379`       | —               | `dev-redis`         | —                |
-| MinIO S3 API    | `https://minio-s3.app.si14.space` | `minioadmin`    | `minioadmin`        | —                |
-| MinIO console   | `https://minio.app.si14.space`    | `minioadmin`    | `minioadmin`        | —                |
+# Pull Requests
 
-MySQL and PostgreSQL `developer` users have unrestricted development access to all current and future databases and can create databases.
+- Make sure titles follow conventions from the repo. They should be simple and easy to understand. Conventional commit styles in projects that use them, i.e. "fix(web): apply rate limit to user signup"
+- PR descriptions should aim for simplicity. Open with a minimal, clear description of a problem. Follow up with how you solved it.
+- Add a blurb to the end of the PR description about what model and harness is making the changes.
+- Open a real PR, not a draft. Drafts do not get review-bot coverage.
+- Rebase onto latest `main` before opening. Stale branches conflict and waste a review round.
+- When asked to monitor or babysit a PR: poll checks and comments newer than the last push; verify each bot finding aganist the source before acting on it; fix real ones and dismiss false positives with a written reason; fix CI failures, distinguishing real breaks from known infra flakes. If nothing is new, stay quiet – do not post filler comments. Stop when the repo's review bots and CI checks are green on the latest commit.
+- Merge only per the disposition given in the request (merge when green, or stop and report). If none was given, report and ask.
 
-Typical connection URLs:
+# Harness - Pi
 
-```text
-mysql://developer:dev-mysql@mysql.app.si14.space:3306/development
-postgresql://developer:dev-postgres@pg.app.si14.space:5432/development
-redis://:dev-redis@redis.app.si14.space:6379/0
-```
+- Pi does not natively support subagents. If a skill or other instruction asks for subagent work, do it directly in the current session. But we do have experimental `subagents` tool, use it when explicitly requested.
+- Executor is code-mode MCP and API integration layer. It is not a subagent tooling. Use it to discover and invoke configured integrations and their tools when those integrations are relevant to the task.
 
-For S3 clients and SDKs, always use `https://minio-s3.app.si14.space` as the endpoint. Use `https://minio.app.si14.space` only for the browser management console. The username and password above act as the S3 access key and secret key. Do not configure development clients to use a localhost MinIO endpoint because clients may run on other Tailscale-connected development machines.
+# Computers, Services and Network information
 
-Do not use these credentials in production or commit them to application files. Put connection URLs and credentials in ignored `.env` files or environment variables.
-
-Service management: check `mise.toml` at `cd /home/chan/Services`
-
-Friendly database/cache names and `.app.si14.space` endpoints are provided through the local/tailnet infrastructure. Test Tailscale Services with the actual protocol client rather than `tailscale ping`.
-
-Do not delete anything under `/home/chan/Services/**/data/` unless the user explicitly requests destructive data removal and confirms it.
+- My computers, services and network information is maintained in `./COMPUTERS.md`.
+- Read that file before tasks involving SSH, machine-specific environments, cross-machine commands or shared development services.

@@ -6,7 +6,10 @@ skills/*
 !skills/make-document/**
 !skills/ot-opennext-release-v1/
 !skills/ot-opennext-release-v1/**
+!skills/file-pr
 !skills/file-pr/**
+!skills/watch-pr
+!skills/watch-pr/**
 
 auth.json
 executor-sidecars.json
