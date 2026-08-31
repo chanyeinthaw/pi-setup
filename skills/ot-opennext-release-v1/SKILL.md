@@ -2,7 +2,7 @@
 name: ot-opennext-release-v1
 description: Set up and verify branch-free AWS SST deployments with GitHub Actions OIDC, staging on main, and production from GitHub Releases.
 disable-model-invocation: true
-compatibility: Requires git, GitHub CLI, AWS CLI, Node.js, pnpm, SST, and Drizzle.
+compatibility: Requires git, GitHub CLI, AWS CLI, Node.js, pnpm, SST, Prisma, and MariaDB.
 ---
 
 # AWS SST release
@@ -26,6 +26,7 @@ Before changing anything, derive these from the repository and authenticated too
 - SST application name and stage names
 - staging and production URLs
 - migration command and database names
+- Aurora cluster connection limit
 - desired stable/prerelease tag policy
 
 Treat database resets, seeds, merges, releases, and production deployments as separate destructive or consequential actions. Obtain explicit user approval for each unless the invocation explicitly requests it.
@@ -51,11 +52,70 @@ AWS_PROFILE=<profile> aws sts get-caller-identity
 ```
 
 4. Identify existing deployment systems. Replace obsolete deployment workflows rather than leaving two systems active.
-5. Preserve the repository's CI checks. Do not add tests unless the user requests them.
+5. Inspect the SST infrastructure and application database adapter for VPC attachment, Aurora networking, Lambda concurrency, and pool settings.
+6. Preserve the repository's CI checks. Do not add tests unless the user requests them.
 
-Completion: repository, AWS account, stages, databases, URLs, migration command, and current workflows are known.
+Completion: repository, AWS account, stages, databases, URLs, migration command, current workflows, and current database networking and connection limits are known.
 
-## 2. Configure AWS OIDC
+## 2. Configure application networking
+
+Keep application Lambdas outside the VPC. Give Aurora public network access so the Lambdas and GitHub Actions can connect directly.
+
+The SST infrastructure must have:
+
+- no Lambda VPC attachment
+- no NAT gateway
+- no bastion host
+- an Aurora DB subnet group using public subnets with internet gateway routes
+- public accessibility enabled on Aurora instances
+- a security group rule that permits MariaDB traffic on the configured port
+- encrypted database connections and credentials stored in Secrets Manager or GitHub Environment secrets
+
+A non-VPC Lambda has no stable egress IP. The Aurora security group therefore cannot restrict ingress to a fixed Lambda address. If direct public access requires broad ingress, call this out in the implementation and completion report. Keep the rule limited to the database port, require TLS, use separate least-privilege database users, and use strong rotated credentials.
+
+Staging and production share one Aurora cluster but use separate databases. Never infer one stage's database name from the other.
+
+Completion: Lambdas have no VPC configuration, the stack creates no NAT or bastion resources, and both deployment workflows can reach the public Aurora endpoint.
+
+## 3. Configure database connection budget
+
+Use small, on-demand MariaDB pools and cap Lambda concurrency:
+
+| Stage | Pool size per Lambda | Reserved concurrency | Maximum pooled connections |
+|---|---:|---:|---:|
+| Staging | 2 | 3 | 6 |
+| Production | 3 | 25 | 75 |
+| **Total ceiling** | | | **81** |
+| **Aurora reserve** | | | **~9** |
+
+Configure the Prisma MariaDB adapter:
+
+```ts
+const connectionLimit = process.env.APP_ENV === 'production' ? 3 : 2
+
+const adapter = new PrismaMariaDb({
+  // ...
+  connectionLimit,
+  acquireTimeout: 5_000,
+  idleTimeout: 60,
+})
+```
+
+Configure Lambda reserved concurrency in SST:
+
+```ts
+concurrency: {
+  reserved: stage === 'production' ? 25 : 3,
+}
+```
+
+Set `APP_ENV` explicitly for each stage. Do not derive production behavior from an absent or loosely matched value.
+
+Pools open connections on demand, so 81 is a ceiling rather than the normal connection count. Verify Aurora's effective connection limit leaves about 9 connections beyond this ceiling for migrations, administration, and database overhead. Include every Lambda function that creates this pool in the budget. If more functions use it, divide the same budget across them instead of silently increasing the ceiling.
+
+Completion: pool limits, timeouts, stage environment, and reserved concurrency match the table, and the Aurora limit has enough reserve.
+
+## 4. Configure AWS OIDC
 
 Create the GitHub Actions OIDC provider if absent:
 
@@ -79,13 +139,14 @@ Never create permanent AWS access keys for GitHub Actions.
 
 Completion: both roles exist, their trust subjects are exact, and required policies are attached.
 
-## 3. Configure GitHub Environments
+## 5. Configure GitHub Environments
 
 Create `staging` and `production` GitHub Environments. Configure environment variables:
 
 ```text
 AWS_DEPLOY_ROLE_ARN
 AWS_REGION
+APP_ENV
 DATABASE_HOST
 DATABASE_PORT
 DATABASE_NAME
@@ -107,7 +168,7 @@ Check deployment branch policies. `main` must be allowed for staging. Production
 
 Completion: list variable names and secret names for both environments without revealing secret values.
 
-## 4. Add database readiness probe
+## 6. Add database readiness probe
 
 Aurora Serverless v2 at `0 ACU` wakes on connection. Add a small Node CLI such as `scripts/wait-for-database.mjs` that:
 
@@ -134,7 +195,7 @@ Ensure migration configuration loads `.env` only when `DATABASE_URL` is absent, 
 
 Completion: readiness succeeds locally when tested against an approved database, and migration configuration accepts an injected URL.
 
-## 5. Staging workflow
+## 7. Staging workflow
 
 Create or replace `.github/workflows/staging.yml`.
 
@@ -190,7 +251,7 @@ Before merge:
 
 Completion: the committed final workflow deploys staging only from pushes to `main`.
 
-## 6. Production workflow
+## 8. Production workflow
 
 Create `.github/workflows/production.yml` triggered by:
 
@@ -223,7 +284,7 @@ Use an existing repository tag validator when available. State whether GitHub pr
 
 Completion: the production workflow deploys an immutable release tag and has no production branch dependency.
 
-## 7. Validate through a PR
+## 9. Validate through a PR
 
 Create a branch from current `origin/main`. If `main` changes, rebase before final push. Never force-push without `--force-with-lease`.
 
@@ -250,7 +311,7 @@ When a check fails:
 
 Do not merge while a deployment or required check is pending or failed.
 
-## 8. Merge and release
+## 10. Merge and release
 
 When explicitly requested:
 
@@ -284,6 +345,9 @@ Report:
 - AWS OIDC provider and role ARNs
 - GitHub Environment variable and secret names
 - workflow paths and triggers
+- Aurora public-access configuration and the resulting ingress exposure
+- confirmation that Lambdas use no VPC, NAT gateway, or bastion
+- pool sizes, Lambda reserved concurrency, 81-connection ceiling, and Aurora reserve
 - readiness and migration behavior
 - PR and release URLs
 - staging and production run results

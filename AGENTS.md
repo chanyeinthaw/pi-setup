@@ -54,7 +54,7 @@ Here are some of my preferences so we can be more aligned as we work together.
 
 # Harness - Pi
 
-- Pi does not natively support subagents. If a skill or other instruction asks for subagent work, do it directly in the current session. But we do have experimental `subagents` tool, use it when explicitly requested.
+- Pi does not natively support subagents. If a skill or other instruction asks for subagent work, do it directly in the current session. [DISABLED-IGNORE] But we do have experimental `subagents` tool, use it when explicitly requested by the user not by skills.
 - Executor is code-mode MCP and API integration layer. It is not a subagent tooling. Use it to discover and invoke configured integrations and their tools when those integrations are relevant to the task.
 
 # Computers, Services and Network information
