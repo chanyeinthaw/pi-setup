@@ -1,9 +1,9 @@
 {
   "providers": {
     "openai-multi": {
-      "baseUrl": "https://llm.tailcd7ccb.ts.net/v1",
+      "baseUrl": "https://cpa1.p.si14.space/v1",
       "api": "openai-completions",
-      "apiKey": "sk-BCPA7Rr6Q73EUDEcY",
+      "apiKey": "$CPA_API_KEY",
       "models": [
         {
           "id": "gpt-5.6-sol",
